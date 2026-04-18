@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button"
 import {
   EllipsisVertical,
+  FileJson2,
   LibraryBig,
 } from "lucide-react"
 
@@ -25,6 +26,13 @@ import { useState, useEffect, useRef} from 'react';
 import DataTable from "@/components/console/data-table"
 import ItemPreview from "@/components/console/item-preview"
 import DialogPost from "@/components/console/dialog-post"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { overloadBlueprint, Blueprint } from '@/lib/console_utils';
 
 interface ToolDataCRUDProps {
@@ -45,16 +53,6 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
     const [deletedId, setDeletedId] = useState<string | null>(null);
     const [refresh, setRefresh] = useState(false);
     const [error, setError] = useState<Error | null>(null);
-
-
-    console.log('TDC>Portfolio:',portfolio)
-    console.log('TDC>Org:',org)
-    console.log('TDC>Tool:',tool)
-    console.log('TDC>Ring:',ring)
-
-
-    //console.log('BLUEPRINT 000');
-    //console.log(blueprint)
 
     useEffect(() => {
         // Function to fetch Blueprint and Data
@@ -84,13 +82,13 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
             } else {
               setError(new Error("An unknown error occurred"));  // Handle other types
             }
-            console.log(error)
+            console.error(error)
           }
         };
         
         fetchBlueprint();
         
-    }, [ring]);
+    }, [ring, portfolio, org]);
 
 
 
@@ -118,11 +116,9 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
             } else {
               setError(new Error("An unknown error occurred"));  // Handle other types
             }
-            console.log(error)
+            console.error(error)
           } finally {
-            //setLoading(false);
             setRefresh(prev => !prev);
-            console.log('Set Refresh!');
           }
         };
 
@@ -134,7 +130,7 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
         }
 
         // This will run on subsequent updates when `deletedId` changes
-        if (deletedId) {  // Make sure there's a valid deletedId
+        if (deletedId) {
           deleteItem();
         }
 
@@ -144,15 +140,13 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
 
     // Function to handle the selected id passed from the child component
     const handleSelectId = (id: string) => {
-      console.log('Handling the clicked row:');
-      console.log(id);
       setSelectedId(id);
     };
 
-    // Function to handle the deleted id passed from the child component
     const handleDeleteId = (id: string) => {
-        console.log('Handling the deleted id:')
-        console.log(id)
+        if (selectedId === id) {
+          setSelectedId('');
+        }
         setDeletedId(id);
     };
 
@@ -166,8 +160,8 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
     return (
 
             
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-            <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
+        <main className="grid flex-1 items-stretch gap-4 p-4 sm:px-6 sm:py-0 md:gap-6 lg:grid-cols-2">
+            <div className="grid min-w-0 auto-rows-max items-start gap-4 md:gap-6">
 
                 <nav className="ml-auto flex items-center gap-2 hidden">
                   
@@ -214,7 +208,27 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
                               {blueprint.description}
                           </CardDescription>
                       </CardHeader>
-                      <CardFooter>
+                      <CardFooter className="flex flex-wrap gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button type="button" size="sm" variant="outline" className="gap-1.5">
+                                <FileJson2 className="h-3.5 w-3.5" />
+                                Blueprint
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="flex max-h-[90vh] w-full max-w-4xl flex-col gap-4 overflow-hidden p-6 sm:max-w-4xl">
+                              <DialogHeader className="shrink-0 space-y-1.5 text-left">
+                                <DialogTitle>
+                                  Blueprint · {blueprint.name || ring}
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-md border bg-muted/20">
+                                <pre className="whitespace-pre-wrap break-words p-4 text-xs leading-relaxed">
+                                  {JSON.stringify(blueprint, null, 2)}
+                                </pre>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                           {!readonly && (
                               <DialogPost
                                   refreshUp={refreshAction}
@@ -230,18 +244,19 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
                 </div>
 
              
-                <div className="h-[calc(100vh-18rem)]">
-                  <Card className="h-full">
-                      <CardHeader className="px-0">
+                <div className="flex min-h-0 h-[calc(100vh-16rem)] flex-col lg:h-[calc(100vh-14rem)]">
+                  <Card className="flex min-h-0 flex-1 flex-col">
+                      <CardHeader className="shrink-0 px-0 pb-2">
                       </CardHeader>
-                      <CardContent className="h-[calc(100%-4rem)] overflow-auto">
-                      <DataTable 
-                          onSelectId={handleSelectId}                        
+                      <CardContent className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-0 sm:px-6">
+                      <DataTable
+                          onSelectId={handleSelectId}
+                          selectedId={selectedId}
                           refresh={refresh}
                           blueprint={blueprint}
-                          portfolio={portfolio} 
-                          org={org} 
-                          tool={tool} 
+                          portfolio={portfolio}
+                          org={org}
+                          tool={tool}
                           ring={ring}
                       >
                       </DataTable>
@@ -251,7 +266,7 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
                   
                 
             </div>
-            <div className="sticky top-5 h-[calc(100vh-5rem-20px)] overflow-y-auto">
+            <div className="sticky top-5 flex h-[calc(100vh-5rem-20px)] min-h-0 flex-col">
                 <ItemPreview 
                    selectedId={selectedId} 
                    refreshUp={refreshAction}
