@@ -17,6 +17,7 @@ import {
   EllipsisVertical,
   FileJson2,
   LibraryBig,
+  RefreshCw,
 } from "lucide-react"
 
 //import { NavLink } from 'react-router-dom';
@@ -52,6 +53,8 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
     const [selectedId, setSelectedId] = useState<string>('');
     const [deletedId, setDeletedId] = useState<string | null>(null);
     const [refresh, setRefresh] = useState(false);
+    /** Bumps ItemPreview `key` so the selected document is re-fetched without reloading the table. */
+    const [previewFetchKey, setPreviewFetchKey] = useState(0);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
@@ -141,13 +144,20 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
     // Function to handle the selected id passed from the child component
     const handleSelectId = (id: string) => {
       setSelectedId(id);
+      setPreviewFetchKey(0);
     };
 
     const handleDeleteId = (id: string) => {
         if (selectedId === id) {
           setSelectedId('');
+          setPreviewFetchKey(0);
         }
         setDeletedId(id);
+    };
+
+    const refreshSelectedDocument = () => {
+      if (!selectedId) return;
+      setPreviewFetchKey((k) => k + 1);
     };
 
     // Function to update the state
@@ -266,8 +276,24 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
                   
                 
             </div>
-            <div className="sticky top-5 flex h-[calc(100vh-5rem-20px)] min-h-0 flex-col">
+            <div className="sticky top-5 flex h-[calc(100vh-5rem-20px)] min-h-0 flex-col gap-2">
+                <div className="flex shrink-0 justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    disabled={!selectedId}
+                    onClick={refreshSelectedDocument}
+                    title={selectedId ? "Reload this document from the server" : undefined}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Refresh
+                  </Button>
+                </div>
+                <div className="min-h-0 flex-1 flex flex-col">
                 <ItemPreview 
+                   key={`${selectedId}:${previewFetchKey}`}
                    selectedId={selectedId} 
                    refreshUp={refreshAction}
                    onDeleteId={handleDeleteId}
@@ -276,6 +302,7 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
                    org={org}
                    ring={ring}
                 /> 
+                </div>
             </div>
         </main>
 
