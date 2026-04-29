@@ -42,15 +42,16 @@ export default function Data({ portfolio, org, tool, section, tree, p1 }: {
           <div className="flex flex-col sm:gap-2 sm:pl-2">
   
             {section === undefined ? (
-              <ToolDataDashboard />
+              <DataExplorer readonly={false} portfolio={portfolio} org={org} tool={tool} initialRing={initialRing}
+              />
               ) : section === "tmp_artifact" ? (
               <ToolDataTmpArtifact portfolio={portfolio} org={org} />
               ) : section === "explorer" ? (
               <DataExplorer readonly={false} portfolio={portfolio} org={org} tool={tool} initialRing={initialRing}
               />
-              ) : (
+              ) : section === "dashboard" ? (
               <ToolDataDashboard />
-              )
+              ) : null
               }
           
           </div>

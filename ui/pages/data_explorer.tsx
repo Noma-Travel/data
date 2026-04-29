@@ -30,18 +30,15 @@ export default function DataExplorer({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Type a ring name (or use `p1`) and retrieve data.</span>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
+    <div className="mx-4 flex flex-col gap-4 sm:mx-6">
+      <div className="mx-auto flex w-full flex-col gap-2 pt-1 sm:w-1/2 sm:flex-row">
         <input
           value={ringInput}
           onChange={(e) => setRingInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") applyRing();
           }}
-          placeholder="e.g. schd_tools"
+          placeholder="enter a Blueprint name (e.g. schd_tools)"
           className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring"
         />
         <button
@@ -50,7 +47,7 @@ export default function DataExplorer({
           onClick={applyRing}
         >
           <Search className="h-3.5 w-3.5" />
-          Open Ring
+          Load
         </button>
       </div>
 
