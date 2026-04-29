@@ -55,6 +55,7 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
     const [refresh, setRefresh] = useState(false);
     /** Bumps ItemPreview `key` so the selected document is re-fetched without reloading the table. */
     const [previewFetchKey, setPreviewFetchKey] = useState(0);
+    const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
@@ -145,6 +146,9 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
     const handleSelectId = (id: string) => {
       setSelectedId(id);
       setPreviewFetchKey(0);
+      if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+        setMobilePreviewOpen(true);
+      }
     };
 
     const handleDeleteId = (id: string) => {
@@ -256,7 +260,56 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
              
                 <div className="flex min-h-0 h-[calc(100vh-16rem)] flex-col lg:h-[calc(100vh-14rem)]">
                   <Card className="flex min-h-0 flex-1 flex-col">
-                      <CardHeader className="shrink-0 px-0 pb-2">
+                      <CardHeader className="shrink-0 px-3 pb-2 pt-3 sm:px-6 lg:px-0 lg:pt-0">
+                        <div className="flex items-center justify-end lg:hidden">
+                          <Dialog open={mobilePreviewOpen} onOpenChange={setMobilePreviewOpen}>
+                            <DialogTrigger asChild>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="gap-1.5"
+                                disabled={!selectedId}
+                                title={selectedId ? "Open selected document" : undefined}
+                              >
+                                <FileJson2 className="h-3.5 w-3.5" />
+                                View selected
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="flex max-h-[92vh] w-full max-w-5xl flex-col gap-3 overflow-hidden p-4 sm:p-6">
+                              <DialogHeader className="shrink-0 space-y-1.5 text-left">
+                                <DialogTitle>
+                                  {selectedId ? `Document ${selectedId}` : "Selected document"}
+                                </DialogTitle>
+                              </DialogHeader>
+                              <div className="flex shrink-0 justify-end">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1.5"
+                                  disabled={!selectedId}
+                                  onClick={refreshSelectedDocument}
+                                >
+                                  <RefreshCw className="h-3.5 w-3.5" />
+                                  Refresh
+                                </Button>
+                              </div>
+                              <div className="min-h-0 flex-1 overflow-auto">
+                                <ItemPreview
+                                  key={`${selectedId}:${previewFetchKey}:mobile`}
+                                  selectedId={selectedId}
+                                  refreshUp={refreshAction}
+                                  onDeleteId={handleDeleteId}
+                                  blueprint={blueprint}
+                                  portfolio={portfolio}
+                                  org={org}
+                                  ring={ring}
+                                />
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </CardHeader>
                       <CardContent className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-0 sm:px-6">
                       <DataTable
@@ -276,7 +329,7 @@ export default function ToolDataCRUD({ readonly, portfolio, org, tool, ring }: T
                   
                 
             </div>
-            <div className="sticky top-5 flex h-[calc(100vh-5rem-20px)] min-h-0 flex-col gap-2">
+            <div className="sticky top-5 hidden h-[calc(100vh-5rem-20px)] min-h-0 flex-col gap-2 lg:flex">
                 <div className="flex shrink-0 justify-end">
                   <Button
                     type="button"
